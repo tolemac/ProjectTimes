@@ -1,6 +1,7 @@
 using System;
 using System.Windows.Forms;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace ProjectTimes
@@ -8,7 +9,7 @@ namespace ProjectTimes
     static class Program
     {
 
-        public static void ConfigureServices(ServiceCollection services)
+        public static void ConfigureServices(IServiceCollection services)
         {
             services.AddLogging(configure => configure.AddConsole())
                 .AddSingleton<Form1>();
@@ -19,18 +20,35 @@ namespace ProjectTimes
         [STAThread]
         static void Main()
         {
-            Application.SetHighDpiMode(HighDpiMode.SystemAware);
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
+            var builder = new HostBuilder()
+                .ConfigureServices((hostContext, services) =>
+                {
+                    ConfigureServices(services);
+                });
 
-            var services = new ServiceCollection();
+            var host = builder.Build();
 
-            ConfigureServices(services);
-
-            using (ServiceProvider serviceProvider = services.BuildServiceProvider())
+            using (var serviceScope = host.Services.CreateScope())
             {
-                var form1 = serviceProvider.GetRequiredService<Form1>();
-                Application.Run(form1);
+                var serviceProvider = serviceScope.ServiceProvider;
+                var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
+                var logger = loggerFactory.CreateLogger(typeof(Program).FullName);
+
+                Application.SetHighDpiMode(HighDpiMode.SystemAware);
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+
+                try
+                {
+                    var form1 = serviceProvider.GetRequiredService<Form1>();
+                    Application.Run(form1);
+
+                    logger.LogInformation("Success");
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError("Error ocurred.", ex);
+                }
             }
         }
     }
