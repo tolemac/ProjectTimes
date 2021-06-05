@@ -1,29 +1,49 @@
 using System;
+using System.Diagnostics;
+using System.IO;
 using System.Windows.Forms;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using ProjectTimes.Domain;
+using ScopedInvocation;
 
 namespace ProjectTimes
 {
     static class Program
     {
 
-        public static void ConfigureServices(IServiceCollection services)
+        public static void ConfigureServices(IConfiguration configuration,  IServiceCollection services)
         {
+            services.AddMicrosoftDiScopedInvocation();
             services.AddLogging(configure => configure.AddConsole())
+                .AddScoped<IProjectTimesEntriesService, ProjectTimesEntriesService>()
+                .AddScoped<IProjectTimeEntryRepository, ProjectTimeEntryRepository>()
+                .AddSingleton<ProjectTimesApplicationContext>()                
+                .Configure<ProjectTimesSettings>(s =>
+                {
+                    s.DataFilePath = Process.GetCurrentProcess().MainModule?.FileName!;
+                })
                 .AddSingleton<Form1>();
         }
         /// <summary>
         ///  The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main()
-        {
+        static void Main(string[] args)
+        {            
             var builder = new HostBuilder()
+                .ConfigureHostConfiguration(configHost =>
+                {
+                    configHost.SetBasePath(Directory.GetCurrentDirectory());
+                    configHost.AddJsonFile("appsettings.json", optional: true);
+                    configHost.AddEnvironmentVariables(prefix: "PREFIX_");
+                    configHost.AddCommandLine(args);
+                })
                 .ConfigureServices((hostContext, services) =>
                 {
-                    ConfigureServices(services);
+                    ConfigureServices(hostContext.Configuration, services);
                 });
 
             var host = builder.Build();
@@ -40,8 +60,8 @@ namespace ProjectTimes
 
                 try
                 {
-                    var form1 = serviceProvider.GetRequiredService<Form1>();
-                    Application.Run(form1);
+                    var appContext = serviceProvider.GetRequiredService<ProjectTimesApplicationContext>();
+                    Application.Run(appContext);
 
                     logger.LogInformation("Success");
                 }
