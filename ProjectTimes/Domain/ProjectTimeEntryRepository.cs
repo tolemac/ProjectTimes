@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Options;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,9 +13,9 @@ namespace ProjectTimes.Domain
         private bool _loaded = false;
         private IList<ProjectTimeEntry> _entries = Array.Empty<ProjectTimeEntry>();
 
-        public ProjectTimeEntryRepository(ProjectTimesSettings settings)
+        public ProjectTimeEntryRepository(IOptions<ProjectTimesSettings> settings)
         {
-            _settings = settings;
+            _settings = settings.Value;
         }
 
         public async Task EnsureLoaded()
@@ -26,8 +27,17 @@ namespace ProjectTimes.Domain
             }
         }
 
+        private async Task EnsureFileExists()
+        {
+            if (!File.Exists(_settings.DataFilePath))
+            {
+                await File.WriteAllTextAsync(_settings.DataFilePath, null);
+            }
+        }
+
         private async Task LoadDataAsync()
         {
+            await EnsureFileExists();
             var lines = await File.ReadAllLinesAsync(_settings.DataFilePath);
             var data = new List<ProjectTimeEntry>(lines.Length);
             foreach (var line in lines)
@@ -69,7 +79,7 @@ namespace ProjectTimes.Domain
         public async Task<int> GetNextIdAsync()
         {
             await EnsureLoaded();
-            return _entries.Max(e => e.Id) + 1;
+            return _entries.Any()? _entries.Max(e => e.Id) + 1 : 1;
         }
 
         public async Task<ProjectTimeEntry> AddAsync(ProjectTimeEntry projectTimeEntry)
@@ -100,6 +110,13 @@ namespace ProjectTimes.Domain
             await LoadDataAsync();
 
             return existing;
+        }
+
+        public async Task<IEnumerable<string>> GetLastEntryDescriptionsOfProjectAsync(string projectName, int count)
+        {
+            await EnsureLoaded();
+            return _entries.Where(e => e.ProjectName == projectName).OrderByDescending(e => e.Id)
+                .Select(e => e.Description).Distinct().Take(count).Cast<string>();
         }
     }
 }

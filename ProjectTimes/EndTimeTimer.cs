@@ -22,6 +22,10 @@ namespace ProjectTimes
         {
             Enabled = true;
 
+            if (_timer.Enabled)
+            {
+                _timer.Stop();
+            }
             _timer.Interval = 3000;
             _timer.Tick += _timerTick;
             _timer.Start();
@@ -30,7 +34,10 @@ namespace ProjectTimes
 
         public void Stop()
         {
-            _timer.Stop();
+            if (_timer.Enabled)
+            {
+                _timer.Stop();
+            }
             Enabled = false;
         }
 

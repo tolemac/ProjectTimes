@@ -29,7 +29,7 @@ namespace ProjectTimes.Domain
             {
                 entry.Id.ToString(),
                 entry.StartTime.ToString(EntryDateFormat),
-                entry.EndTime?.ToString(EntryDateFormat) ?? "",
+                entry.EndTime.ToString(EntryDateFormat),
                 entry.ProjectName ?? "",
                 entry.Description ?? ""
             });

@@ -7,7 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ProjectTimes.Domain;
-using ScopedInvocation;
 
 namespace ProjectTimes
 {
@@ -16,16 +15,25 @@ namespace ProjectTimes
 
         public static void ConfigureServices(IConfiguration configuration,  IServiceCollection services)
         {
-            services.AddMicrosoftDiScopedInvocation();
-            services.AddLogging(configure => configure.AddConsole())
+            services.AddLogging(configure => configure.AddConsole());
+
+            services
                 .AddScoped<IProjectTimesEntriesService, ProjectTimesEntriesService>()
                 .AddScoped<IProjectTimeEntryRepository, ProjectTimeEntryRepository>()
-                .AddSingleton<ProjectTimesApplicationContext>()                
+                .AddSingleton<ProjectTimesApplicationContext>()
                 .Configure<ProjectTimesSettings>(s =>
                 {
-                    s.DataFilePath = Process.GetCurrentProcess().MainModule?.FileName!;
+                    s.DataFilePath = Path.Combine(Path.GetDirectoryName(Process.GetCurrentProcess().MainModule?.FileName!)!, "project_times.data.txt");
                 })
-                .AddSingleton<Form1>();
+                .AddSingleton<ProjectTimesService>()
+                .AddSingleton<StartWorkingForm>()
+                .AddSingleton<WorkDescriptionForm>();
+
+            services
+                .AddMicrosoftDiScopedInvocation();
+                
+
+
         }
         /// <summary>
         ///  The main entry point for the application.

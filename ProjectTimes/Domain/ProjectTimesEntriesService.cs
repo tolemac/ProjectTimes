@@ -13,19 +13,9 @@ namespace ProjectTimes.Domain
             _repository = repository;
         }
 
-        public async Task<ProjectTimeEntry?> GetCurrentEntryAsync()
+        public Task<ProjectTimeEntry?> GetLastEntryAsync()
         {
-            var last = await _repository.GetLastOrDefaultAsync();
-            return last?.EndTime is null ? last : null;
-        }
-
-        public async Task<ProjectTimeEntry?> GetLastFinishedEntryAsync()
-        {
-            var last = await _repository.GetLastOrDefaultAsync();
-            if (last is null || last.EndTime is not null)
-                return last;
-
-            return await _repository.GetPreviousToOrDefaultAsync(last!.Id);
+            return _repository.GetLastOrDefaultAsync();
         }
 
         public Task<IEnumerable<string>> GetProjectNamesAsync()
@@ -48,10 +38,15 @@ namespace ProjectTimes.Domain
 
         public async Task<ProjectTimeEntry?> FinishLastEntryAsync()
         {
-            var entry = await GetLastFinishedEntryAsync();
+            var entry = await GetLastEntryAsync();
             if (entry is null)
                 return null;
             return await FinishEntryAsync(entry.Id, DateTime.Now);
+        }
+
+        public Task<IEnumerable<string>> GetLastEntryDescriptionsOfProjectAsync(string projectName, int count)
+        {
+            return _repository.GetLastEntryDescriptionsOfProjectAsync(projectName, count);
         }
     }
 }

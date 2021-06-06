@@ -12,5 +12,6 @@ namespace ProjectTimes.Domain
         Task<ProjectTimeEntry> AddAsync(ProjectTimeEntry projectTimeEntry);
         Task<ProjectTimeEntry> GetByIdAsync(int id);
         Task<ProjectTimeEntry> UpdateAsync(ProjectTimeEntry entry);
+        Task<IEnumerable<string>> GetLastEntryDescriptionsOfProjectAsync(string projectName, int count);
     }
 }

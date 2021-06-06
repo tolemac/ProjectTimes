@@ -6,10 +6,13 @@ namespace ProjectTimes
     public class ProjectTimesApplicationContext : ApplicationContext
     {
         private NotifyIcon _trayIcon;
+        private readonly ProjectTimesService _service;
 
-        public ProjectTimesApplicationContext()
+        public ProjectTimesApplicationContext(ProjectTimesService service)
         {
             var menu = new ContextMenuStrip();
+            menu.Items.Add("Show", null, (f, f2) => Show());
+            menu.Items.Add("-");
             menu.Items.Add("Exit", null, (f, f2) => Exit(f!, f2));
                         
             // Initialize Tray Icon
@@ -19,7 +22,15 @@ namespace ProjectTimes
                 ContextMenuStrip = menu,
                 Visible = true
             };
-        }        
+            
+            _service = service;
+            _service.OpenWorkingForm();
+        }
+
+        void Show()
+        {
+            _service.ReOpenWorkingForm();
+        }
 
         void Exit(object sender, EventArgs e)
         {

@@ -11,12 +11,12 @@ namespace ProjectTimes
 {
     public class ProjectTimesService
     {
-        private readonly Form1 _form;
+        private readonly StartWorkingForm _form;
         private readonly SystemEventsHandler _systemEvents;
         private readonly EndTimeTimer _endTimeTimer;
-        private readonly IScopedInvocation<ProjectTimesEntriesService> _serviceInvocation;
+        private readonly IScopedInvocation<IProjectTimesEntriesService> _serviceInvocation;
 
-        public ProjectTimesService(Form1 form, IScopedInvocation<ProjectTimesEntriesService> serviceInvocation)
+        public ProjectTimesService(StartWorkingForm form, IScopedInvocation<IProjectTimesEntriesService> serviceInvocation)
         {
             _form = form;
             _systemEvents = new(() => SessionLockAsync(), () => SessionUnlockAsync());
@@ -43,20 +43,28 @@ namespace ProjectTimes
 
             // Disable events and timer.
             _endTimeTimer.Stop();
-            _systemEvents.Stop();
         }
 
+        internal async void ReOpenWorkingForm()
+        {
+            await SessionUnlockAsync();
+        }
         internal void OpenWorkingForm()
         {
-            if (!Application.OpenForms.OfType<Form1>().Any())
+            if (!Application.OpenForms.OfType<StartWorkingForm>().Any())
             {
-                _form.ShowDialog();
+                var result = _form.ShowDialog();
+                _systemEvents.Start();
+                if (result == DialogResult.Yes)
+                {
+                    _endTimeTimer.Start();                    
+                }
             }
         }
 
         internal async Task SaveEndTimeAsync()
         {
-            await _serviceInvocation.InvokeAsync(async (service, cancelation) => {
+            await _serviceInvocation.InvokeAsync(async (service, _) => {
                 await service.FinishLastEntryAsync();
             });
 
