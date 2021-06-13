@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ProjectTimes.Infrastructure;
@@ -26,16 +27,14 @@ namespace ProjectTimes.Domain
             _beginEndWorkSignaler.SetActions(BeginWorkAsync, EndWorkAsync);
         }
 
-        internal Task BeginWorkAsync()
+        internal async Task BeginWorkAsync()
         {
             // Disable events and timer.
             _endTimeTimer.Stop();
             _beginEndWorkSignaler.Stop();
 
             // Show start working dialog
-            StartToWork();
-
-            return Task.CompletedTask;
+            await StartToWork();
 
         }
         internal Task EndWorkAsync()
@@ -46,13 +45,30 @@ namespace ProjectTimes.Domain
             return Task.CompletedTask;
         }
 
-        public void StartToWork()
+        public async Task StartToWork()
         {
             _endTimeTimer.Stop();
             _beginEndWorkSignaler.Stop();
 
-            if (_workerStarter.StartToWork())
+            var result = _workerStarter.StartToWork();
+            if (!result.TimeToRest)
+            {
+                if (result.ContinueWork)
+                {
+                    await _serviceInvocation.InvokeAsync(async (service, _) =>
+                    {
+                        await service.FinishLastEntryAsync();
+                    });
+                }
+                else
+                {
+                    await _serviceInvocation.InvokeAsync(async (service, _) =>
+                    {
+                        await service.CreateEntryAsync(DateTime.Now, result.ProjectName!, result.Description!);
+                    });
+                }
                 _endTimeTimer.Start();
+            }
             _beginEndWorkSignaler.Start();
         }
 

@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Security.Cryptography;
 using System.Windows.Forms;
 using ProjectTimes.Domain;
 
@@ -12,17 +13,14 @@ namespace ProjectTimes
         {
             _form = form;
         }
-        public bool StartToWork()
+        public WorkStarterResult StartToWork()
         {
             if (!Application.OpenForms.OfType<StartWorkingForm>().Any())
             {
                 var result = _form.ShowDialog();
-                if (result == DialogResult.Yes)
-                {
-                    return true;
-                }
+                return _form.WorkStarterResult;
             }
-            return false;
+            return WorkStarterResult.CreateTimeToRestObject();
         }
     }
 }

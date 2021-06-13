@@ -24,12 +24,18 @@ namespace ProjectTimes
             };
             
             _service = service;
-            _service.StartToWork();
+            Application.Idle += Application_Idle;
         }
 
-        void Show()
+        private async void Application_Idle(object? sender, System.EventArgs e)
         {
-            _service.StartToWork();
+            Application.Idle -= Application_Idle;
+            await _service.StartToWork();
+        }
+
+        public async void Show()
+        {
+            await _service.StartToWork();
         }
 
         void Exit()

@@ -2,6 +2,6 @@
 {
     public interface IWorkStarter
     {
-        bool StartToWork();
+        WorkStarterResult StartToWork();
     }
 }

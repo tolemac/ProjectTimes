@@ -8,7 +8,7 @@ namespace ProjectTimes
 {
     public partial class WorkDescriptionForm : Form
     {
-        public string? WorkDescription { get; set; }
+        public string WorkDescription { get; set; } = null!;
         private string _projectName = null!;
 
         private readonly IScopedInvocation<IProjectTimesEntriesService> _serviceInvocation;
@@ -25,21 +25,21 @@ namespace ProjectTimes
         public DialogResult ShowDialog(string projectName)
         {
             _projectName = projectName;
-            lblProjectName.Text = $"Last works on project '{projectName}'";
+            lblProjectName.Text = $@"Last works on project '{projectName}'";
             var result = ShowDialog();
             return result;
         }
 
         private void lstLastDescriptions_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            lstLastDescriptionSelected();
+            LstLastDescriptionSelected();
         }
 
-        private void lstLastDescriptionSelected()
+        private void LstLastDescriptionSelected()
         {
             if (lstLastDescriptions.SelectedItem is not null)
             {
-                WorkDescription = lstLastDescriptions.SelectedItem.ToString();
+                WorkDescription = lstLastDescriptions.SelectedItem.ToString()!;
                 DialogResult = DialogResult.OK;
             }
         }
@@ -51,7 +51,7 @@ namespace ProjectTimes
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
-            WorkDescription = null;
+            WorkDescription = null!;
         }
 
         private void tbxWorkDescription_TextChanged(object sender, EventArgs e)
@@ -63,7 +63,7 @@ namespace ProjectTimes
         {
             if (e.KeyCode == Keys.Enter)
             {
-                lstLastDescriptionSelected();
+                LstLastDescriptionSelected();
             }
         }
 
@@ -74,7 +74,7 @@ namespace ProjectTimes
             await _serviceInvocation.InvokeAsync(async (service, _) => 
             {
                 var descriptions = await service.GetLastEntryDescriptionsOfProjectAsync(_projectName, 10);                
-                lstLastDescriptions.Items.AddRange(descriptions.ToArray());
+                lstLastDescriptions.Items.AddRange(descriptions.Cast<object>().ToArray());
             });
         }
 

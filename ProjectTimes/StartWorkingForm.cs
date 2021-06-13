@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Microsoft.Extensions.Logging;
 using ProjectTimes.Domain;
 using ScopedInvocation;
 
@@ -10,17 +9,16 @@ namespace ProjectTimes
 {
     public partial class StartWorkingForm : Form
     {
-        private readonly ILogger<StartWorkingForm> _logger;
         private readonly IScopedInvocation<IProjectTimesEntriesService> _serviceInvocation;
         private readonly WorkDescriptionForm _workDescriptionForm;
 
-        public StartWorkingForm(ILogger<StartWorkingForm> logger, 
-            IScopedInvocation<IProjectTimesEntriesService> serviceInvocation,
+        public WorkStarterResult WorkStarterResult = null!;
+
+        public StartWorkingForm(IScopedInvocation<IProjectTimesEntriesService> serviceInvocation,
             WorkDescriptionForm workDescriptionForm)
         {
             InitializeComponent();
             _serviceInvocation = serviceInvocation;
-            _logger = logger;
             _workDescriptionForm = workDescriptionForm;
 
 #if !DEBUG
@@ -30,10 +28,7 @@ namespace ProjectTimes
 
         private async void btnContinue_Click(object sender, EventArgs e)
         {
-            await _serviceInvocation.InvokeAsync(async (service, _) =>
-            {
-                await service.FinishLastEntryAsync();
-            });
+            WorkStarterResult = WorkStarterResult.CreateContinueWorkObject();
             DialogResult = DialogResult.Yes;
         }
 
@@ -54,10 +49,7 @@ namespace ProjectTimes
         {
             if (_workDescriptionForm.ShowDialog(projectName) == DialogResult.OK)
             {
-                await _serviceInvocation.InvokeAsync(async (service, _) =>
-                {
-                    await service.CreateEntryAsync(DateTime.Now, projectName, _workDescriptionForm.WorkDescription!);
-                });
+                WorkStarterResult = WorkStarterResult.CreateNewWorkObject(projectName, _workDescriptionForm.WorkDescription);
                 DialogResult = DialogResult.Yes;
             }
         }
@@ -83,6 +75,7 @@ namespace ProjectTimes
 
         private void btnNoWorking_Click(object sender, EventArgs e)
         {
+            WorkStarterResult = WorkStarterResult.CreateTimeToRestObject();
             DialogResult = DialogResult.No;
         }
 
@@ -96,10 +89,10 @@ namespace ProjectTimes
                 var last = await service.GetLastEntryAsync();
                 if (last is not null)
                 {
-                    tbxLastProjectName.Text = $"{last.ProjectName} - {last.Description}";
+                    tbxLastProjectName.Text = $@"{last.ProjectName} - {last.Description}";
                 }
                 var projectNames = await service.GetProjectNamesAsync();                
-                lstLatestProjects.Items.AddRange(projectNames.ToArray());
+                lstLatestProjects.Items.AddRange(projectNames.Cast<object>().ToArray());
             });
         }
 
