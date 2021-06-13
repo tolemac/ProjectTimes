@@ -7,16 +7,16 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ProjectTimes.Domain;
+using Serilog;
 
 namespace ProjectTimes
 {
     public static class Program
     {
+        
 
         public static void ConfigureServices(IConfiguration configuration,  IServiceCollection services)
         {
-            services.AddLogging(configure => configure.AddConsole());
-
             services
                 .AddScoped<IProjectTimesEntriesService, ProjectTimesEntriesService>()
                 .AddScoped<IProjectTimeEntryRepository, ProjectTimeEntryRepository>()
@@ -34,30 +34,19 @@ namespace ProjectTimes
 
             services
                 .AddMicrosoftDiScopedInvocation();
-                
-
-
         }
         /// <summary>
         ///  The main entry point for the application.
         /// </summary>
         [STAThread]
         static void Main(string[] args)
-        {            
-            var builder = new HostBuilder()
-                .ConfigureHostConfiguration(configHost =>
-                {
-                    configHost.SetBasePath(Directory.GetCurrentDirectory());
-                    configHost.AddJsonFile("appsettings.json", optional: true);
-                    configHost.AddEnvironmentVariables(prefix: "PREFIX_");
-                    configHost.AddCommandLine(args);
-                })
-                .ConfigureServices((hostContext, services) =>
-                {
-                    ConfigureServices(hostContext.Configuration, services);
-                });
+        {
+            Log.Logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(SetupConfigBuilder(args, new ConfigurationBuilder()).Build())
+                .Enrich.WithProperty("AppName", "Project Times")
+                .CreateLogger();
 
-            var host = builder.Build();
+            var host = BuildHost(args);
 
             using (var serviceScope = host.Services.CreateScope())
             {
@@ -81,6 +70,28 @@ namespace ProjectTimes
                     logger.LogError("Error occurred.", ex);
                 }
             }
+        }
+        
+
+        private static IHost BuildHost(string[] args)
+        {
+            return new HostBuilder()
+                .ConfigureHostConfiguration(configHost => { SetupConfigBuilder(args, configHost); })
+                .ConfigureServices((hostContext, services) =>
+                {
+                    ConfigureServices(hostContext.Configuration, services);
+                })
+                .UseSerilog()
+                .Build();
+        }
+
+        private static IConfigurationBuilder SetupConfigBuilder(string[] args, IConfigurationBuilder configHost)
+        {
+            configHost.SetBasePath(Directory.GetCurrentDirectory());
+            configHost.AddJsonFile("ProjectTimes.settings.json", optional: true, reloadOnChange: true);
+            configHost.AddEnvironmentVariables(prefix: "PREFIX_");
+            configHost.AddCommandLine(args);
+            return configHost;
         }
     }
 }
