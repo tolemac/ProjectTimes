@@ -19,14 +19,14 @@ namespace ProjectTimes
         {
             services
                 .AddScoped<IProjectTimesEntriesService, ProjectTimesEntriesService>()
-                .AddScoped<IProjectTimeEntryRepository, ProjectTimeEntryRepository>()
+                .AddScoped<IProjectTimeEntryRepository, TxtFileProjectTimeEntryRepository>()
                 .AddSingleton<IWorkStarter, WindowsFormsWorkStarter>()
                 .AddSingleton<BeginEndWorkSignaler, SystemEventsHandler>()
                 .AddSingleton<ProjectTimesApplicationContext>()
                 .Configure<ProjectTimesSettings>(s =>
                 {
                     s.DataFilePath = Path.Combine(Path.GetDirectoryName(Process.GetCurrentProcess().MainModule?.FileName!)!, "project_times.data.txt");
-                    s.EndTimeTimerMiliseconds = 3000;
+                    s.EndTimeTimerMilliseconds = 3000;
                 })
                 .AddSingleton<ProjectTimesService>()
                 .AddSingleton<StartWorkingForm>()

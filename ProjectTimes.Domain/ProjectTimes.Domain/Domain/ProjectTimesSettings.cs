@@ -3,6 +3,6 @@
     public class ProjectTimesSettings
     {
         public string DataFilePath { get; set; } = null!;
-        public int EndTimeTimerMiliseconds { get; set; }
+        public int EndTimeTimerMilliseconds { get; set; }
     }
 }

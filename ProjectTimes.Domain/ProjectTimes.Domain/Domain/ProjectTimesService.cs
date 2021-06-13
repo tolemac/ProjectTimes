@@ -18,7 +18,7 @@ namespace ProjectTimes.Domain
             IScopedInvocation<IProjectTimesEntriesService> serviceInvocation, BeginEndWorkSignaler beginEndWorkSignaler,
             ILogger<ProjectTimesService> logger)
         {
-            _endTimeTimer = new ActionTimer(SaveEndTimeAsync, settingsOptions?.Value.EndTimeTimerMiliseconds ?? 3000);
+            _endTimeTimer = new ActionTimer(SaveEndTimeAsync, settingsOptions?.Value.EndTimeTimerMilliseconds ?? 3000);
             _workerStarter = workerStarter;
             _serviceInvocation = serviceInvocation;
             _beginEndWorkSignaler = beginEndWorkSignaler;
@@ -38,10 +38,12 @@ namespace ProjectTimes.Domain
             return Task.CompletedTask;
 
         }
-        internal async Task EndWorkAsync()
+        internal Task EndWorkAsync()
         {
             // Disable events and timer.
             _endTimeTimer.Stop();
+
+            return Task.CompletedTask;
         }
 
         public void StartToWork()

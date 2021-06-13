@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace ProjectTimes.Domain
 {
-    public class ProjectTimeEntryRepository : IProjectTimeEntryRepository
+    public class TxtFileProjectTimeEntryRepository : IProjectTimeEntryRepository
     {
         private readonly ProjectTimesSettings _settings;
         private bool _loaded = false;
         private IList<ProjectTimeEntry> _entries = Array.Empty<ProjectTimeEntry>();
 
-        public ProjectTimeEntryRepository(IOptions<ProjectTimesSettings> settings)
+        public TxtFileProjectTimeEntryRepository(IOptions<ProjectTimesSettings> settings)
         {
             _settings = settings.Value;
         }
