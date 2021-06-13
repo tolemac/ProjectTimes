@@ -17,18 +17,18 @@ namespace ProjectTimes
 
         public static void ConfigureServices(IConfiguration configuration,  IServiceCollection services)
         {
+            services.AddProjectTimesServices()
+                .AddTxtProjectTimesRepository(
+                    Path.Combine(
+                        Path.GetDirectoryName(Process.GetCurrentProcess().MainModule?.FileName!)!, 
+                        "project_times.data.txt"
+                        ), 
+                    3000);
+
             services
-                .AddScoped<IProjectTimesEntriesService, ProjectTimesEntriesService>()
-                .AddScoped<IProjectTimeEntryRepository, TxtFileProjectTimeEntryRepository>()
                 .AddSingleton<IWorkStarter, WindowsFormsWorkStarter>()
                 .AddSingleton<BeginEndWorkSignaler, SystemEventsHandler>()
                 .AddSingleton<ProjectTimesApplicationContext>()
-                .Configure<ProjectTimesSettings>(s =>
-                {
-                    s.DataFilePath = Path.Combine(Path.GetDirectoryName(Process.GetCurrentProcess().MainModule?.FileName!)!, "project_times.data.txt");
-                    s.EndTimeTimerMilliseconds = 3000;
-                })
-                .AddSingleton<ProjectTimesService>()
                 .AddSingleton<StartWorkingForm>()
                 .AddSingleton<WorkDescriptionForm>();
 
