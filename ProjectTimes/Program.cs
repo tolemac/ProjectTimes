@@ -10,7 +10,7 @@ using ProjectTimes.Domain;
 
 namespace ProjectTimes
 {
-    static class Program
+    public static class Program
     {
 
         public static void ConfigureServices(IConfiguration configuration,  IServiceCollection services)
@@ -20,10 +20,13 @@ namespace ProjectTimes
             services
                 .AddScoped<IProjectTimesEntriesService, ProjectTimesEntriesService>()
                 .AddScoped<IProjectTimeEntryRepository, ProjectTimeEntryRepository>()
+                .AddSingleton<IWorkStarter, WindowsFormsWorkStarter>()
+                .AddSingleton<BeginEndWorkSignaler, SystemEventsHandler>()
                 .AddSingleton<ProjectTimesApplicationContext>()
                 .Configure<ProjectTimesSettings>(s =>
                 {
                     s.DataFilePath = Path.Combine(Path.GetDirectoryName(Process.GetCurrentProcess().MainModule?.FileName!)!, "project_times.data.txt");
+                    s.EndTimeTimerMiliseconds = 3000;
                 })
                 .AddSingleton<ProjectTimesService>()
                 .AddSingleton<StartWorkingForm>()
@@ -75,7 +78,7 @@ namespace ProjectTimes
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError("Error ocurred.", ex);
+                    logger.LogError("Error occurred.", ex);
                 }
             }
         }

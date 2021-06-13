@@ -1,20 +1,22 @@
 ﻿using System;
 using System.Threading.Tasks;
-using System.Windows.Forms;
+using System.Timers;
 
-namespace ProjectTimes
+namespace ProjectTimes.Infrastructure
 {
-    public class EndTimeTimer
+    public class ActionTimer
     {
-        private Timer _timer = new Timer();
+        private readonly Timer _timer = new();
 
-        private Func<Task>? _handlerAction = null;
+        private readonly Func<Task>? _handlerAction;
+        private readonly int _milliseconds;
 
-        public bool Enabled { get; private set; } = false;
+        public bool Enabled { get; private set; }
 
-        public EndTimeTimer(Func<Task>? handlerAction)
+        public ActionTimer(Func<Task>? handlerAction, int milliseconds)
         {
             _handlerAction = handlerAction;
+            _milliseconds = milliseconds;
         }
 
 
@@ -26,10 +28,9 @@ namespace ProjectTimes
             {
                 _timer.Stop();
             }
-            _timer.Interval = 3000;
-            _timer.Tick += _timerTick;
+            _timer.Interval = _milliseconds;
+            _timer.Elapsed += _timerTick;
             _timer.Start();
-
         }
 
         public void Stop()

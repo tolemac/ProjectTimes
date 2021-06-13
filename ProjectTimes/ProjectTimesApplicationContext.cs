@@ -1,19 +1,19 @@
-﻿using System;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
+using ProjectTimes.Domain;
 
 namespace ProjectTimes
 {
     public class ProjectTimesApplicationContext : ApplicationContext
     {
-        private NotifyIcon _trayIcon;
+        private readonly NotifyIcon _trayIcon;
         private readonly ProjectTimesService _service;
 
         public ProjectTimesApplicationContext(ProjectTimesService service)
         {
             var menu = new ContextMenuStrip();
-            menu.Items.Add("Show", null, (f, f2) => Show());
+            menu.Items.Add("Show", null, (_, _) => Show());
             menu.Items.Add("-");
-            menu.Items.Add("Exit", null, (f, f2) => Exit(f!, f2));
+            menu.Items.Add("Exit", null, (_, _) => Exit());
                         
             // Initialize Tray Icon
             _trayIcon = new NotifyIcon()
@@ -24,15 +24,15 @@ namespace ProjectTimes
             };
             
             _service = service;
-            _service.OpenWorkingForm();
+            _service.StartToWork();
         }
 
         void Show()
         {
-            _service.ReOpenWorkingForm();
+            _service.StartToWork();
         }
 
-        void Exit(object sender, EventArgs e)
+        void Exit()
         {
             // Hide tray icon, otherwise it will remain shown until user mouses over it
             _trayIcon.Visible = false;

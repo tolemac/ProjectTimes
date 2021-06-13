@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ProjectTimes.Domain
+namespace ProjectTimes.Infrastructure
 {
     public static class EnumerableExtensions
     {
