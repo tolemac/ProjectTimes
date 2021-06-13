@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using ProjectTimes.Domain;
 using ScopedInvocation;
@@ -26,26 +25,26 @@ namespace ProjectTimes
 #endif
         }
 
-        private async void btnContinue_Click(object sender, EventArgs e)
+        private void btnContinue_Click(object sender, EventArgs e)
         {
             WorkStarterResult = WorkStarterResult.CreateContinueWorkObject();
             DialogResult = DialogResult.Yes;
         }
 
-        private async void btnStartWorkingOn_Click(object sender, EventArgs e)
+        private void btnStartWorkingOn_Click(object sender, EventArgs e)
         {
-            await StartNewWork(tbxNewProjectName.Text);
+            StartNewWork(tbxNewProjectName.Text);
         }
 
-        private async void lstLatestProjects_MouseDoubleClick(object sender, MouseEventArgs e)
+        private void lstLatestProjects_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             if (lstLatestProjects.SelectedItem is not null)
             {
-                await StartNewWork(lstLatestProjects.SelectedItem.ToString()!);
+                StartNewWork(lstLatestProjects.SelectedItem.ToString()!);
             }
         }
 
-        private async Task StartNewWork(string projectName)
+        private void StartNewWork(string projectName)
         {
             if (_workDescriptionForm.ShowDialog(projectName) == DialogResult.OK)
             {
@@ -54,11 +53,11 @@ namespace ProjectTimes
             }
         }
 
-        private async void lstLatestProjects_KeyDown(object sender, KeyEventArgs e)
+        private void lstLatestProjects_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter && lstLatestProjects.SelectedItem is not null)
             {
-                await StartNewWork(lstLatestProjects.SelectedItem.ToString()!);
+                StartNewWork(lstLatestProjects.SelectedItem.ToString()!);
             }
 
         }
