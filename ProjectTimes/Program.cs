@@ -52,7 +52,7 @@ namespace ProjectTimes
             {
                 var serviceProvider = serviceScope.ServiceProvider;
                 var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
-                var logger = loggerFactory.CreateLogger(typeof(Program).FullName);
+                var logger = loggerFactory.CreateLogger(typeof(Program).FullName!);
 
                 Application.SetHighDpiMode(HighDpiMode.SystemAware);
                 Application.EnableVisualStyles();
