@@ -10,15 +10,17 @@ namespace ProjectTimes
     {
         private readonly IScopedInvocation<IProjectTimesEntriesService> _serviceInvocation;
         private readonly WorkDescriptionForm _workDescriptionForm;
-
+        private readonly ContinueOrStartAgainForm _continueOrStartAgainForm;
         public WorkStarterResult WorkStarterResult = null!;
+        private ProjectTimeEntry? _lastEntry;
 
         public StartWorkingForm(IScopedInvocation<IProjectTimesEntriesService> serviceInvocation,
-            WorkDescriptionForm workDescriptionForm)
+            WorkDescriptionForm workDescriptionForm, ContinueOrStartAgainForm continueOrStartAgainForm)
         {
             InitializeComponent();
             _serviceInvocation = serviceInvocation;
             _workDescriptionForm = workDescriptionForm;
+            _continueOrStartAgainForm = continueOrStartAgainForm;
 
 #if !DEBUG
             this.TopMost = true;
@@ -27,8 +29,26 @@ namespace ProjectTimes
 
         private void btnContinue_Click(object sender, EventArgs e)
         {
-            WorkStarterResult = WorkStarterResult.CreateContinueWorkObject();
-            DialogResult = DialogResult.Yes;
+            var continueWork = true;
+
+            if (_lastEntry is not null 
+                && (DateTime.Now - _lastEntry.EndTime) > TimeSpan.FromMinutes(60))
+            {
+                continueWork = false;
+                var frmResult = _continueOrStartAgainForm.ShowDialog();
+                if (frmResult == DialogResult.TryAgain)
+                {
+                    CreateNewWorkObject(_lastEntry.ProjectName, _lastEntry.Description);
+                } else if (frmResult == DialogResult.Continue)
+                {
+                    continueWork = true;
+                }
+            }
+
+            if (continueWork) {
+                WorkStarterResult = WorkStarterResult.CreateContinueWorkObject();
+                DialogResult = DialogResult.Yes;
+            }
         }
 
         private void btnStartWorkingOn_Click(object sender, EventArgs e)
@@ -48,9 +68,14 @@ namespace ProjectTimes
         {
             if (_workDescriptionForm.ShowDialog(projectName) == DialogResult.OK)
             {
-                WorkStarterResult = WorkStarterResult.CreateNewWorkObject(projectName, _workDescriptionForm.WorkDescription);
-                DialogResult = DialogResult.Yes;
+                CreateNewWorkObject(projectName, _workDescriptionForm.WorkDescription);
             }
+        }
+
+        private void CreateNewWorkObject(string projectName, string description)
+        {
+            WorkStarterResult = WorkStarterResult.CreateNewWorkObject(projectName, description);
+            DialogResult = DialogResult.Yes;
         }
 
         private void lstLatestProjects_KeyDown(object sender, KeyEventArgs e)
@@ -85,10 +110,10 @@ namespace ProjectTimes
             tbxNewProjectName.Text = "";            
             await _serviceInvocation.InvokeAsync(async (service, _) =>
             {
-                var last = await service.GetLastEntryAsync();
-                if (last is not null)
+                _lastEntry = await service.GetLastEntryAsync();
+                if (_lastEntry is not null)
                 {
-                    tbxLastProjectName.Text = $@"{last.ProjectName} - {last.Description}";
+                    tbxLastProjectName.Text = $@"{_lastEntry.ProjectName} - {_lastEntry.Description}";
                 }
                 var projectNames = await service.GetProjectNamesAsync();                
                 lstLatestProjects.Items.AddRange(projectNames.Cast<object>().ToArray());

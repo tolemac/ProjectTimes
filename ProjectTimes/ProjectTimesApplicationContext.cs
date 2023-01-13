@@ -20,9 +20,11 @@ namespace ProjectTimes
             {
                 Icon = Resources.favicon,
                 ContextMenuStrip = menu,
-                Visible = true
+                Visible = true                
             };
-            
+
+            _trayIcon.DoubleClick += (_,_) => Show();
+
             _service = service;
             Application.Idle += Application_Idle;
         }

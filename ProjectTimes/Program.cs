@@ -30,7 +30,8 @@ namespace ProjectTimes
                 .AddSingleton<BeginEndWorkSignaler, SystemEventsHandler>()
                 .AddSingleton<ProjectTimesApplicationContext>()
                 .AddSingleton<StartWorkingForm>()
-                .AddSingleton<WorkDescriptionForm>();
+                .AddSingleton<WorkDescriptionForm>()
+                .AddSingleton<ContinueOrStartAgainForm>();
 
             services
                 .AddMicrosoftDiScopedInvocation();
@@ -41,6 +42,7 @@ namespace ProjectTimes
         [STAThread]
         static void Main(string[] args)
         {
+            // Para hacer que se muestre u oculte la ventana de la consola cambia en el csproj entre <OutputType>Exe</OutputType>(lo muestra) y <OutputType>WinExe</OutputType> (no lo muestra)
             Log.Logger = new LoggerConfiguration()
                 .ReadFrom.Configuration(SetupConfigBuilder(args, new ConfigurationBuilder()).Build())
                 .Enrich.WithProperty("AppName", "Project Times")
